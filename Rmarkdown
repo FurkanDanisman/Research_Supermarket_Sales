@@ -1,0 +1,224 @@
+---
+title: "Supermarket Sales Analysis"
+author: "Furkan Danisman, Ilyurek Kilic"
+date: "May 2, 2023"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Required Libraries
+```{r load-packages, message=FALSE, warning=FALSE}
+library(Rfit) 
+library(mblm) 
+library(Stat2Data)
+library(tidyr)
+library(tidyverse)
+library(readxl)
+library(dplyr)
+library(MASS)
+library(formattable)
+library(vtable)
+library(DataExplorer)
+```
+
+## Data Preparation
+
+```{r load-data}
+supermarket_sales <- read.csv("supermarket_sales.csv")
+supermarket_sales <- na.omit(supermarket_sales)
+```
+## Overview of the Data
+```{r view-data}
+head(supermarket_sales)
+
+```
+
+## Descriptive Statistics of the Data
+```{r descriptive}
+sumtable(supermarket_sales)
+```
+### ------------------------------------------------------------------------------------------------------
+## Two sample test for "MEMBER" and "NORMAL" Customers
+### ------------------------------------------------------------------------------------------------------
+### Preparation of the data
+```{r two-sample}
+# Filtering total price by Member customer type
+
+a <- supermarket_sales %>% filter(Customer.type=="Member")
+Total_Price_for_Membership <- a$Total
+
+# Filtering total price by Normal customer type
+a <- supermarket_sales %>% filter(Customer.type=="Normal")
+Total_Price_for_Normal <- a$Total
+
+# Data frame of these two type membership
+data.frame_Membership_Table <- data.frame(Member=Total_Price_for_Membership[1:499],Normal=Total_Price_for_Normal)
+```
+### Total Price Distribution for MEMBER Customer Type
+```{r two-sample 2}
+hist(Total_Price_for_Membership,main = "Total Price Distribution of Members",xlab = "Total Price",col = "darkolivegreen4")
+```
+
+### Total Price Distribution for Normal Customers Type
+```{r two-sample 3}
+hist(Total_Price_for_Normal,main = "Total Price Distribution of Normals",xlab = "Total Price",col = "darkolivegreen4")
+```
+
+### Descriptive Statistics of Custumer Types
+```{r two-sample 4}
+sumtable(data.frame_Membership_Table)
+```
+### Parametric Test (alpha value = 0.05)
+```{r two-sample 5}
+# F-test to check equality of variances (checking assumption for t-test)  
+
+var.test(Total_Price_for_Membership,Total_Price_for_Normal,alternative = "two.sided")
+
+# The p-value of F-test is p = 0.6977 which is greater than the significance level 0.05. In conclusion, there is no significant difference between the two variances. 
+# As a result in t.test we can assume that variances are equal.
+
+# Implementing t-test assuming equal variances
+t.test(Total_Price_for_Membership,Total_Price_for_Normal,var.equal = T,alternative = "greater")
+
+# p-value is significantly greater than 0.05 which is our alpha value. To be more confident with our result we will also implement non-parametric test.
+```
+### Non-Parametric Test (alpha value = 0.05)
+```{r two-sample 6}
+# Wilcox test 
+wilcox.test(Total_Price_for_Membership,Total_Price_for_Normal,alternative = "greater",paired = FALSE)
+
+# Since p value is greater than 0.05 for both of the cases, we reject null hypothesis for both of the test. As a result, since there is no contradiction, We conclude that Total price of Members is greater than total price of Normal customers at 0.05 level.
+```
+### ----------------------------------------------------------------
+## Regression of Total Price for Genders
+### ----------------------------------------------------------------
+### Preparation of the data
+```{r gender 1}
+# Filtering total price by genders
+a <- supermarket_sales %>% filter(Gender == "Female")
+Total_Price_for_Females <- a$Total
+
+a <- supermarket_sales %>% filter(Gender == "Male")
+Total_Price_for_Males <- a$Total 
+
+# Create list of total prices by gender
+my_data <- list()
+my_data[["Female"]] <- Total_Price_for_Females
+my_data[["Male"]] <- Total_Price_for_Males
+```
+### Total Price Distribution for Genders
+```{r gender 2}
+# Box-plot of total price by gender
+boxplot(my_data, ylab = "Total Price", main = "Boxplot for Total Price ~ Gender")
+
+# Add median lines to box-plot
+Meds = data.frame(x = 1:2, y = sapply(my_data, median))
+abline(col = "blue", lwd = 3, cex = 3, lm(y ~ x, data = Meds))
+```
+
+### Parametric Version - Simple Linear Regression
+```{r gender 3}
+# Constructing a linear regression model
+model_for_gender <- lm(Total ~ Gender, data = supermarket_sales)
+```
+### Diagnostic Plots
+```{r gender 4}
+par(mfrow = c(2, 2))
+plot(model_for_gender)
+```
+
+### Summary of the Model
+```{r gender 5}
+summary(model_for_gender)
+# P value is greater than 0.05. To be more confident with our result considering the fact that it might come from not-normally distributed population we will also do non-parametric test.  
+```
+### Non-Parametric Version - Rank Based Estimation Regression
+```{r gender 6}
+model.r <- rfit(Total~Gender,data = supermarket_sales)
+```
+### Summary of the Model
+```{r gender 7}
+summary(model.r)
+```
+### Results of the Regressions
+```{r gender 8}
+
+# Summary
+
+# We did Simple Linear Regression and Rank Based Estimation Regression. In additional, since the p-value is greater than 0.05 for the both version and there is no contradiction, it can be concluded that gender is not significantly associated with the variation in total price between individuals.
+```
+### ----------------------------------------------------------------------------------------------------------
+
+## Multiple Regression of Total Price for Gender and Product lines
+
+### ----------------------------------------------------------------------------------------------------------
+
+### Data Preparation 
+```{r product1}
+# Filtering total prices regarding the "product line".
+
+a <- supermarket_sales %>% filter(Product.line=="Electronic accessories")
+Total_Price_for_Electronic_accessories <- a$Total
+
+a <- supermarket_sales %>% filter(Product.line=="Fashion accessories")
+Total_Price_for_Fashion_accessories <- a$Total
+
+a <- supermarket_sales %>% filter(Product.line=="Food and beverages")
+Total_Price_for_Food_and_beverages <- a$Total
+
+a <- supermarket_sales %>% filter(Product.line=="Health and beauty")
+Total_Price_for_Health_and_beauty <- a$Total
+
+a <- supermarket_sales %>% filter(Product.line=="Home and lifestyle")
+Total_Price_for_Home_and_lifestyle <- a$Total
+
+a <- supermarket_sales %>% filter(Product.line=="Sports and travel")
+Total_Price_for_Sports_and_travel <- a$Total
+
+# Turning our variables into a stacked data-frame
+data_frame_for_genders_and_product <-data.frame("Female"=Total_Price_for_Females[1:152],"Male"=Total_Price_for_Males[1:152],"Electronic accessories"=Total_Price_for_Electronic_accessories[1:152],
+                                                 "Fashion accessories"=Total_Price_for_Fashion_accessories[1:152],"Food and beverages"=Total_Price_for_Food_and_beverages[1:152],
+                                                 "Health and beauty"=Total_Price_for_Health_and_beauty[1:152],"Sports and travel"=Total_Price_for_Sports_and_travel[1:152])
+
+stacked_Gender_and_product <- stack(data_frame_for_genders_and_product)
+
+# Creating total-price data by the gender and product line factors
+my_data2 <- list()
+my_data2[["Female"]] <- Total_Price_for_Females
+my_data2[["Male"]] <- Total_Price_for_Males
+my_data2[["Electronic accessories"]] <- Total_Price_for_Electronic_accessories
+my_data2[["Fashion accessories"]] <- Total_Price_for_Fashion_accessories
+my_data2[["Food and Beverages"]] <- Total_Price_for_Food_and_beverages
+my_data2[["Health and beauty"]] <- Total_Price_for_Health_and_beauty
+my_data2[["Sports and travel"]] <- Total_Price_for_Sports_and_travel
+```
+### Structure of the new data-frame
+```{r product2}
+str(stacked_Gender_and_product)
+```
+### Total Price Distribution among Product lines and Genders
+```{r product3}
+boxplot(stacked_Gender_and_product$values~stacked_Gender_and_product$ind,main="Boxplot of Total Price ~ Gender and Product Line",ylab = "Total Price",
+        xlab = "Gender and Product Line")
+Meds2 = data.frame(x = 1:7, y = sapply(my_data2, median))
+abline(col="blue",lwd=3,cex=3,lm(y ~ x, data=Meds2))
+```
+### Parametric Version - Multiple Linear Regression
+```{r product4}
+# Implementing a multiple linear regression model
+model_for_gender_and_product_line <- lm(Total~Gender+Product.line,data = supermarket_sales)
+summary(model_for_gender_and_product_line)
+# p-values are greater than 0.05 for each variable. We will also look at the non-parametric test to see whether there is a contradiction or not.
+```
+### Non-Parametric Version - Rank Based Estimation Regression
+```{r product5}
+model.r2 <- rfit(Total~Gender+Product.line,data = supermarket_sales)
+summary(model.r2)
+
+# We did Multiple Linear Regression and  Rank Based Estimation Regression. Furthermore, since p value for all variables are greater than 0.05 for the both of the version and there is no contradiction, we can conclude that taking product variable into account does not change the signification of gender. Moreover, it can be seen that gender and product line are not significantly associated with the variation in Total between individuals.
+
