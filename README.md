@@ -26,6 +26,8 @@ investigated whether gender and product type affect total expenditures. As a res
 showed that supermarket expenditures might vary according to certain factors and are not
 affected by specific variables which are hypothesized in advance. 
 
+
+
 ## Introduction
 
 Supermarket companies, especially in big cities, have to understand customer behavior and create price ranges suitable for them due to the competition among them. At the same time, customers form their shopping habits by considering various factors such as product variety, price comparison, and payment methods while spending in their supermarkets. This mutual association between supermarket brands and customers is made possible by both stakeholder understanding of supermarket infrastructure. For this reason, the data has been shaped around various hypothesis tests for the consumer and supermarket infrastructure owner to understand this complex structure.
@@ -42,6 +44,8 @@ Whether the supermarket market affects the customers' interest or whether member
 </p>
 
 
+
+
 ## Data Description
 The supermarket data set includes 17 distinct variables and 1000 observations collected over three months by three separate firms. It includes factors such as the locations in which the firms are headquartered, customer membership categories, customer genders, customer payment methods, product types, and total customer expenditures. It has 8 continuous variables, 5 categorical variables, and 1 discrete variable. It is illustrated in the following figure:
 
@@ -50,6 +54,8 @@ The supermarket data set includes 17 distinct variables and 1000 observations co
 </p>
 
 Data Source: https://zdataset.com/free-dataset/supermarket-sales/
+
+
 
 ## Research Questions
 
@@ -74,11 +80,15 @@ Data Source: https://zdataset.com/free-dataset/supermarket-sales/
 
 6. In this research, we wonder whether the branch of a supermarket makes a difference in terms of the total price of customer’s expenses or other words, whether the means/median of different supermarket branches is equal or not at α = 0.05.
 
+
+
 ## Aim of the Study
 
 The purpose of this research is to help supermarket owners and customers understand the supermarket infrastructure and construct connection points between supermarket key elements. Three of these key elements, especially membership, product line, and the relationship with the total price of the payment method are the main elements of this research.
 
 The focus of the research was on the difference between the normal and member status of the customer on the price of their shopping at the supermarket, the relationship between the selected product line and the total price paid by the customer, and how the total price payment proportion differs from customers according to the payment method. In addition to these, whether there is a difference between the total price of the three brands and whether there is a difference in the total price averages according to gender has been investigated with various hypotheses and statistical tests. We hope that testing these ideas will reveal whether there is a difference or not between the variables that are mentioned above.
+
+
 
 ## Methodology-Analysis
 
@@ -89,6 +99,8 @@ Under parametric tests, we first applied the t-test method to inference about th
 ratio test and also use diagnostic plots to clarify the normality. Finally, we implement a one-way- Anova test and Tukey multiple comparison tests to decide if the means are significantly different from each other or not.
 
 Under non-parametric tests, we first applied the signed test and Wilcoxon rank-sum test methods to make an inference about the median and to compare the medians. Then we applied the Chi-squared method to have information about the proportions and comparison of the proportions. Then, we applied the Rank Based Estimation Regression method for categorical variables. Finally, we used the Kruskal-Wallis method.
+
+
 
 ## Discussion-Conclusion
 
@@ -123,6 +135,8 @@ In the multiple regression part of the research, the effect of different gender 
 +	Findings of Research Question – 6 )
 
 In the variances difference analysis part of the research, there is a claim that the branch of a supermarket makes a difference or not in terms of the total price of customer's expenses or, in other words, whether the means/medians of different supermarkets branches are equal or not at a=0.05. The analysis of this curiosity is tested through the One Way ANOVA, Krusko-Wallis Rank Sum Test, and Tukey Multiple Comparision Test. To meet the assumptions of One-way- Anova, the QQ plot and variance ratio test is used. In the QQ plot, the variables do not lie in the line, which indicates non-normality, but since the sample is large enough, we assumed that the population is normally distributed. In addition, from the ratio test, we find that the variances are equally distributed since the ratio is closer to 1. As a result, we can implement a one-way- ANOVA test. For both of the variance analysis tests, the p-values are calculated. Since the p-value for both tests is greater than 0.05, and there is no contradiction, we fail to reject the null hypothesis. It can be concluded that there is not enough evidence to support the claim that the branch of a supermarket makes a difference in terms of the total price of customer's expenses or, in other words, the means/medians of different supermarket branches are equal at 0.05 level. To support the findings from ANOVA and Kruskal-Wallis and show that if we analyzed companies two by two separately, we still do not find enough evidence to show the difference, we used Tukey Multiple Comparision Test. In the Tukey Multiple Comparision Test, since all adj p values are greater than 0.05, we fail to reject the null hypothesis, and we conclude that there is no difference in means/medians between any two branches.
+
+
 
 ## References
 
