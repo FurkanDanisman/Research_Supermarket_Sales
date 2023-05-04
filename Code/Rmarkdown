@@ -1,1 +1,402 @@
+---
+title: "Results and Findings"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Required Libraries
+```{r load-packages, message=FALSE, warning=FALSE}
+library(Rfit) 
+library(mblm) 
+library(Stat2Data)
+library(tidyr)
+library(tidyverse)
+library(readxl)
+library(dplyr)
+library(MASS)
+library(formattable)
+library(vtable)
+library(DataExplorer)
+library(nortest)
+library(DescTools)
+```
+
+### Data Preparation
+
+```{r load-data}
+supermarket_sales <- read.csv("supermarket_sales.csv",stringsAsFactors = T) # Uploading string variables as factors
+supermarket_sales$Date <- as.Date(supermarket_sales$Date,format="%m/%d/%Y") # Creating a Date variable
+supermarket_sales <- na.omit(supermarket_sales) # Cleaning NA values if there are any
+```
+
+### Overview of the Data
+```{r view-data}
+head(supermarket_sales) 
+
+```
+
+### Descriptive Statistics of the Data
+```{r descriptive}
+sumtable(supermarket_sales[,!names(supermarket_sales) %in% c("Invoice.ID", "Time")]) # Excluding the ID and the time of the payment
+```
+
+### ------------------------------------------------------------------------------------------------------------------
+### Checking the Normality of the Total Price Distribution
+### ------------------------------------------------------------------------------------------------------------------
+
+#### Total Price Distribution
+```{r Normality hist of the total1}
+hist(supermarket_sales$Total,probability = T,breaks=20,col = "darkolivegreen3",main = "Distribution of the Total Price",xlab = "Total Price") 
+curve(dnorm(x,mean = mean(supermarket_sales$Total),sd=sd(supermarket_sales$Total)),yaxt="n",add = TRUE,lwd=2,col="darkblue") # Adding Normality Curve
+```
+
+#### QQ plot of the Total Price Distribution
+```{r Normality of the total2}
+qqnorm(supermarket_sales$Total, pch = 1, frame = FALSE) # Plotting the QQ graph
+qqline(supermarket_sales$Total, col = "steelblue", lwd = 2) # Adding the line
+# Line does not have linearly straight position. Hence, it is presumably not normally distributed.
+```
+
+#### Anderson Darling Normality Test (alpha = 0.05)
+```{r Normality of the total3}
+ad.test(supermarket_sales$Total)
+# The p-value is lower than 0.05. Hence, there is no significant evidence to show that it is normally distributed.
+```
+
+#### Box-cox Method
+```{r Normality of the total4,fig.width=10,fig.height=8}
+boxcox(lm(supermarket_sales$Total~1))
+boxcox_Total <- boxcox(lm(supermarket_sales$Total~1))
+
+# Lambda Value
+boxcox_Total$x[which.max(boxcox_Total$y)]
+# Box-cox method suggesting a log-transformation for the "Normality".
+```
+
+#### Log-transformed Distribution of Total Price
+```{r Normality of the total5}
+hist(log(supermarket_sales$Total),probability = T,breaks=20,col = "darkolivegreen3",main = "Distribution of the Log-Transformed Total Price",xlab = "Total Price")
+curve(dnorm(x,mean = mean(log(supermarket_sales$Total)),sd=sd(log(supermarket_sales$Total))),yaxt="n",add = TRUE,lwd=2,col="darkblue") # Adding the normality curve
+```
+
+#### Shapiro-test for Log-transformed Total Price (alpha = 0.05)
+```{r Normality of the total6}
+shapiro.test(log(supermarket_sales$Total))
+# The p-value is lower than 0.05. Hence, there is no significant evidence to show that it is normally distributed.
+```
+
+
+### ------------------------------------------------------------------------------------------------------------------
+## - Research Question 1
+### - One Sample Hypothesis Test for Total Price
+### ------------------------------------------------------------------------------------------------------------------
+
+#### Descriptive Statistics for Total Price
+```{r One sample}
+a <- as.data.frame(supermarket_sales$Total) # Creating the data frame
+colnames(a) <- "Total Price" # Changing the column name
+sumtable(a) # Descriptive statistics function
+```
+
+#### Parametric - One Sample t-test at 95% Confidence Level
+```{r One sample2}
+t.test(supermarket_sales$Total,mu=270,alternative = "two.sided",conf.level = 0.95)
+# Confidence interval does not include the value of 270. Hence, there is no significant evidence to support the claim. Nevertheless we will also look from non-parametric perspective as well.
+```
+
+#### Non-parametric - One Sample Sign-test at 95% Confidence Level
+```{r One sample3}
+SignTest(supermarket_sales$Total,mu=270)
+# The p-value is greater than 0.05 which contradicts the results of t-test. Due to effects of outliers, non-parametric test is more reliable.
+```
+
+### ------------------------------------------------------------------------------------------------------------------
+## - Research Question 2 
+### - Two Sample Hypothesis Test for "MEMBER" and "NORMAL" Customers
+### ------------------------------------------------------------------------------------------------------------------
+#### Preparation of the Data
+
+```{r two-sample}
+# Filtering total price by Member customer type
+
+a <- supermarket_sales %>% filter(Customer.type=="Member")
+Total_Price_for_Membership <- a$Total
+
+# Filtering total price by Normal customer type
+a <- supermarket_sales %>% filter(Customer.type=="Normal")
+Total_Price_for_Normal <- a$Total
+
+# Data frame of these two type membership
+data.frame_Membership_Table <- data.frame(Member=Total_Price_for_Membership[1:499],Normal=Total_Price_for_Normal)
+```
+#### Total Price Distribution for MEMBER Customer Type
+```{r two-sample 2}
+hist(Total_Price_for_Membership,main = "Total Price Distribution of Member Customer Type",xlab = "Total Price",col = "turquoise")
+```
+
+#### Total Price Distribution for Normal Customers Type
+```{r two-sample 3}
+hist(Total_Price_for_Normal,main = "Total Price Distribution of Normal Customer Type",xlab = "Total Price",col = "orange")
+```
+
+#### Descriptive Statistics of Custumer Types
+```{r two-sample 4}
+sumtable(data.frame_Membership_Table)
+```
+
+#### Parametric - Two Sample t Test (alpha value = 0.05)
+```{r two-sample 5}
+# F-test to check equality of variances (checking assumption for t-test)  
+
+var.test(Total_Price_for_Membership,Total_Price_for_Normal,alternative = "two.sided")
+
+# The p-value of F-test is p = 0.6977 which is greater than the significance level 0.05. In conclusion, there is no significant difference between the two variances. 
+# As a result in t.test we can assume that variances are equal.
+
+# Implementing t-test assuming equal variances
+t.test(Total_Price_for_Membership,Total_Price_for_Normal,var.equal = T,alternative = "greater")
+
+# The p-value is significantly greater than 0.05 which is our alpha value. To be more confident with our result we will also implement non-parametric test.
+```
+
+#### Non-Parametric - Two sample Wilcoxon Test (alpha value = 0.05)
+```{r two-sample 6}
+# Wilcoxon test 
+wilcox.test(Total_Price_for_Membership,Total_Price_for_Normal,alternative = "greater",paired = FALSE)
+
+# Since the p-value is greater than 0.05 for both of the cases, we reject null hypothesis for both of the test. As a result, since there is no contradiction, We conclude that Total price of Members is greater than total price of Normal customers at 0.05 level.
+```
+
+### ------------------------------------------------------------------------------------------------------------------
+## - Research Question 3 
+### - One sample Hypothesis Testing for Proportions of Payment Types. 
+### ------------------------------------------------------------------------------------------------------------------
+
+#### Proportions of the Payment Type Among Customers
+```{r one-sample proportion 1}
+prop.table(table(supermarket_sales$Payment))
+```
+
+#### z-value and p-value for Cash Payment Type
+```{r one-sample proportion 2}
+
+z <- (0.344-0.3)/sqrt(0.3*0.7/1000) # calculating critical value by the formula
+p <- 2*pnorm(-abs(z)) # turning critical value into p-value
+x <- data.frame("Critical_z_value"=z,"p_value"=p) # table of these values
+x
+# The p-value is significantly lower than 0.05. Hence, we can conclude that there is significant evidence to support our claim.
+```
+
+#### Chi-square Test For Cash Payment Type
+```{r one-sample proportion 3}
+prop.test(x=344,n=1000,p=0.3)
+# The p-value is similar with the previous finding. Therefore, result is supported by this test as well.
+```
+
+### ------------------------------------------------------------------------------------------------------------------
+## - Research Question 4 
+### - Two Sample Hypothesis Test for Proportions of Payment Types
+### ------------------------------------------------------------------------------------------------------------------
+
+#### Proportional Distribution for Genders and Payment Type 
+```{r two-sample proportion 1}
+table(supermarket_sales$Payment,supermarket_sales$Gender)
+```
+
+#### Critical z-value and p-value for the Two Sample Proportion
+```{r two-sample proportion 2}
+z <- (178/501-166/499)/sqrt((178+166)/1000*(656/1000)/501+(178+166)/1000*(656/1000)/499)
+p <- 2*pnorm(-abs(z))
+x <- data.frame("Critical_z_value"=z,"p_value"=p)
+x
+# The p-value is significantly greater than 0.05. Hence, there is no significant evidence to support the claim.
+```
+
+#### Chi-square test
+```{r two-sample proportion 3}
+prop.test(x=c(178,166),n=c(501,499))
+# Again The p-value is greater than 0.05. Therefore, it supports the previous results.
+```
+
+### ------------------------------------------------------------------------------------------------------------------
+## - Research Question 5.1 
+### - Regression of Total Price for Genders
+### ------------------------------------------------------------------------------------------------------------------
+
+#### Preparation of the data
+```{r gender 1}
+# Filtering total price by genders
+a <- supermarket_sales %>% filter(Gender == "Female")
+Total_Price_for_Females <- a$Total
+
+a <- supermarket_sales %>% filter(Gender == "Male")
+Total_Price_for_Males <- a$Total 
+
+# Creating list of total prices by gender
+my_data <- list()
+my_data[["Female"]] <- Total_Price_for_Females
+my_data[["Male"]] <- Total_Price_for_Males
+```
+
+#### Total Price Distribution for Genders
+```{r gender 2}
+# Box-plot of total price by gender
+boxplot(my_data, ylab = "Total Price", main = "Boxplot for Total Price ~ Gender",col = c("purple1","lightblue"))
+
+# Add median lines to box-plot
+Meds = data.frame(x = 1:2, y = sapply(my_data, median)) # Creating data frame to draw the line
+abline(col = "black", lwd = 3, cex = 3, lm(y ~ x, data = Meds)) # Drawing the line
+```
+
+#### Parametric - Simple Linear Regression
+```{r gender 3}
+# Constructing a linear regression model
+model_for_gender <- lm(Total ~ Gender, data = supermarket_sales)
+```
+
+#### Diagnostic Plots
+```{r gender 4}
+par(mfrow = c(2, 2))
+plot(model_for_gender)
+```
+
+#### Summary of the Model
+```{r gender 5}
+summary(model_for_gender)
+# P value is greater than 0.05. To be more confident with our result considering the fact that it might come from not-normally distributed population we will also do non-parametric test.  
+```
+
+#### Non-Parametric - Rank Based Estimation Regression
+```{r gender 6}
+model.r <- rfit(Total~Gender,data = supermarket_sales)
+```
+
+#### Summary of the Model
+```{r gender 7}
+summary(model.r)
+```
+
+#### Results of the Regressions
+```{r gender 8}
+
+# Summary
+
+# We did Simple Linear Regression and Rank Based Estimation Regression. In additional, since the p-value is greater than 0.05 for the both version and there is no contradiction, it can be concluded that gender is not significantly associated with the variation in total price between individuals.
+```
+
+### ------------------------------------------------------------------------------------------------------------------
+
+## - Research Question 5.2 
+### - Multiple Regression of Total Price for Gender and Product lines
+
+### ------------------------------------------------------------------------------------------------------------------
+
+#### Data Preparation 
+```{r product1}
+# Filtering total prices regarding the "product line".
+
+a <- supermarket_sales %>% filter(Product.line=="Electronic accessories")
+Total_Price_for_Electronic_accessories <- a$Total
+
+a <- supermarket_sales %>% filter(Product.line=="Fashion accessories")
+Total_Price_for_Fashion_accessories <- a$Total
+
+a <- supermarket_sales %>% filter(Product.line=="Food and beverages")
+Total_Price_for_Food_and_beverages <- a$Total
+
+a <- supermarket_sales %>% filter(Product.line=="Health and beauty")
+Total_Price_for_Health_and_beauty <- a$Total
+
+a <- supermarket_sales %>% filter(Product.line=="Home and lifestyle")
+Total_Price_for_Home_and_lifestyle <- a$Total
+
+a <- supermarket_sales %>% filter(Product.line=="Sports and travel")
+Total_Price_for_Sports_and_travel <- a$Total
+
+# Turning our variables into a stacked data-frame choosing 152 sample size
+data_frame_for_genders_and_product <-data.frame("Female"=Total_Price_for_Females[1:152],"Male"=Total_Price_for_Males[1:152],"Electronic accessories"=Total_Price_for_Electronic_accessories[1:152],
+                                                 "Fashion accessories"=Total_Price_for_Fashion_accessories[1:152],"Food and beverages"=Total_Price_for_Food_and_beverages[1:152],
+                                                 "Health and beauty"=Total_Price_for_Health_and_beauty[1:152],"Sports and travel"=Total_Price_for_Sports_and_travel[1:152])
+
+stacked_Gender_and_product <- stack(data_frame_for_genders_and_product)
+
+# Creating total-price data by the gender and product line factors
+my_data2 <- list()
+my_data2[["Female"]] <- Total_Price_for_Females
+my_data2[["Male"]] <- Total_Price_for_Males
+my_data2[["Electronic accessories"]] <- Total_Price_for_Electronic_accessories
+my_data2[["Fashion accessories"]] <- Total_Price_for_Fashion_accessories
+my_data2[["Food and Beverages"]] <- Total_Price_for_Food_and_beverages
+my_data2[["Health and beauty"]] <- Total_Price_for_Health_and_beauty
+my_data2[["Sports and travel"]] <- Total_Price_for_Sports_and_travel
+```
+
+#### Structure of the new data-frame
+```{r product2}
+str(stacked_Gender_and_product)
+```
+
+#### Total Price Distribution among Product lines and Genders
+```{r product3,fig.width=18,fig.height=8}
+boxplot(stacked_Gender_and_product$values~stacked_Gender_and_product$ind,main="Boxplot of Total Price ~ Gender and Product Line",ylab = "Total Price",
+        xlab = " ",col=c("purple1","lightblue","red4","red3","darkolivegreen","lightgreen","darkblue"),cex.names=0.2,las=1)
+Meds2 = data.frame(x = 1:7, y = sapply(my_data2, median)) # Creating data frame for Line Coordination
+abline(col="black",lwd=3,cex=3,lm(y ~ x, data=Meds2)) # Drawing the line
+```
+
+#### Parametric - Multiple Linear Regression
+```{r product4}
+# Implementing a multiple linear regression model
+model_for_gender_and_product_line <- lm(Total~Gender+Product.line,data = supermarket_sales)
+summary(model_for_gender_and_product_line)
+# The p-values are greater than 0.05 for each variable. We will also look at the non-parametric test to see whether there is a contradiction or not.
+```
+
+#### Non-Parametric - Rank Based Estimation Regression
+```{r product5}
+model.r2 <- rfit(Total~Gender+Product.line,data = supermarket_sales)
+summary(model.r2)
+
+# We did Multiple Linear Regression and  Rank Based Estimation Regression. Furthermore, since p value for all variables are greater than 0.05 for the both of the version and there is no contradiction, we can conclude that taking product variable into account does not change the signification of gender. Moreover, it can be seen that gender and product line are not significantly associated with the variation in Total between individuals.
+```
+
+### ------------------------------------------------------------------------------------------------------------------
+
+## - Research Question 6 
+### - One Way Anova and Multiple Comparisons of Different Branches
+
+### ------------------------------------------------------------------------------------------------------------------
+
+#### Anova Assumptions
+```{r anova1}
+# Normality Assumption - QQ-plot of the total-price (It is shown for the second-time)
+qqnorm(supermarket_sales$Total, pch = 1, frame = FALSE)
+qqline(supermarket_sales$Total, col = "steelblue", lwd = 2)
+
+# Variance assumption check by Bartlett test
+bartlett.test(Total~Branch,supermarket_sales)
+# From the output, it can be seen that the p-value of 0.06079 is not less than the significance level of 0.05. This means that there is no evidence to suggest that the variance in plant growth is statistically significantly different for the three brand groups.
+```
+
+#### Parametric - One-way Anova Test
+```{r anova2}
+summary(aov(Total~Branch,supermarket_sales))
+# As the p-value is highly greater than the significance level 0.05, we can conclude that there are no significant differences between the branches. However, we will surely look at the non-parametric test as well.
+```
+
+#### Non-parametric - Kruskal-Wallis Rank Sum Test
+```{r anova3}
+kruskal.test(Total~Branch,supermarket_sales)
+# The p-value is significantly greater than 0.05 which supports the prior results.
+```
+
+#### Tukey Multiple Comparison Test
+```{r anova4}
+TukeyHSD(aov(Total~Branch,supermarket_sales))
+# As all the p-values are greater than 0.05 there is no significant evidence to support a difference between the branches.
+```
 
