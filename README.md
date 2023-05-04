@@ -12,5 +12,5 @@ whether there was a significant difference between customers' supermarket expend
 regarding to payment method, membership type, and supermarket branch. Lastly, it has been
 investigated whether gender and product type affect total expenditures. As a result, these findings
 showed that supermarket expenditures might vary according to certain factors and are not
-affected by specific variables which are hypothesized in advance.
+affected by specific variables which are hypothesized in advance. 
 
