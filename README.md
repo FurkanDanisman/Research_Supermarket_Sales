@@ -1,4 +1,4 @@
-# [Research_Supermarket_Sales](https://github.com/FurkanDanisman/Research_Supermarket_Sales)
+# [Research_Supermarket_Sales](https://furkandanisman.github.io/Research_Supermarket_Sales/)
 Research with statistical analysis on R to better understand supermarket customers' behaviour.
 
 ## Table of Contents
