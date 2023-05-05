@@ -54,7 +54,7 @@ The supermarket data set includes 17 distinct variables and 1000 observations co
 </p>
 
 <p align="center">
-  <img width="500" height="200" src="https://github.com/FurkanDanisman/Research_Supermarket_Sales/blob/main/images/Supermarketsales%2Cfigure2.jpg">
+  <img width="500" height="180" src="https://github.com/FurkanDanisman/Research_Supermarket_Sales/blob/main/images/Supermarketsales%2Cfigure2.jpg">
 </p>
 
 
