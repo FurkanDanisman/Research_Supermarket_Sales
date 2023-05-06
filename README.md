@@ -53,9 +53,6 @@ The supermarket data set includes 17 distinct variables and 1000 observations co
   <img width="600" height="350" src="https://github.com/FurkanDanisman/Research_Supermarket_Sales/blob/main/images/Supermarketsales%2Cfigure2.jpg">
 </p>
 
-<p align="center">
-  <img width="500" height="180" src="https://github.com/FurkanDanisman/Research_Supermarket_Sales/blob/main/images/Supermarketsales%2Cfigure2.jpg">
-</p>
 
 
 Data Source: [https://zdataset.com/free-dataset/supermarket-sales/](https://zdataset.com/free-dataset/supermarket-sales/)
