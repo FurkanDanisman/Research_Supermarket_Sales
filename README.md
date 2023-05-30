@@ -100,7 +100,7 @@ Under parametric tests, we first applied the t-test method to inference about th
 
 Under non-parametric tests, we first applied the signed test and Wilcoxon rank-sum test methods to make an inference about the median and to compare the medians. Then we applied the Chi-squared method to have information about the proportions and comparison of the proportions. Then, we applied the Rank Based Estimation Regression method for categorical variables. Finally, we used the Kruskal-Wallis method.
 
-All of these analysis and the concluded results has been done through R programming language and the codes and outputs are published through html-format which you may find [here](https://furkandanisman.github.io/Research_Supermarket_Sales/Code/Supermarket-code-output.html).
+All of these analyses and the concluded results has been done through R programming language and the codes and outputs are published through html-format which you may find by clicking [R analysis](https://furkandanisman.github.io/Research_Supermarket_Sales/Code/Supermarket-code-output.html).
 
 
 
